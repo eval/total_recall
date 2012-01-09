@@ -15,6 +15,14 @@ Usage
     # typically you would do:
     $ total_recall ledger -i abn.csv -p abn > abn.dat
 
+Develop
+------------
+    
+    $ git clone git://github.com/eval/total_recall.git
+    $ cd total_recall
+    $ bundle
+    $ rake spec
+
 Author
 ------
 
