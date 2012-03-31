@@ -57,6 +57,33 @@ module TotalRecall
         self.class.options
       end
     end # /Abn
+
+    class AbnCC
+      require 'time'
+
+      # Expected: Hash with:
+      #:amount => Float,
+      #:currency => String,
+      #:description => String,
+      #:date => Date
+      def parse_row(row)
+        amount = row[2].sub(/,/,'.').to_f
+        {
+          :amount => (row[8] == 'D' ? -amount : amount),
+          :date => Date.parse(row[0]),
+          :description => row[3],
+          :currency => 'EUR'
+        }
+      end
+
+      def self.options
+        {:col_sep => ",", :headers => true}
+      end
+
+      def options
+        self.class.options
+      end
+    end # /AbnCC
   end # /ParseStrategy
 
   class Ledger < Mustache
@@ -192,7 +219,8 @@ TEMPLATE
       def self.strategies
         {
           'abn' => TotalRecall::ParseStrategy::Abn,
-          'ing' => TotalRecall::ParseStrategy::Ing
+          'ing' => TotalRecall::ParseStrategy::Ing,
+          'abncc' => TotalRecall::ParseStrategy::AbnCC
         }
       end
 
