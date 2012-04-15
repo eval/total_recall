@@ -21,7 +21,7 @@ Develop
     $ git clone git://github.com/eval/total_recall.git
     $ cd total_recall
     $ bundle
-    $ rake spec
+    $ bundle exec rake spec
 
 Author
 ------
