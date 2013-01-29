@@ -4,6 +4,28 @@ require "mustache"
 
 module TotalRecall
   module ParseStrategy
+    class IngCC
+      require 'time'
+
+      def parse_row(row)
+        amount = row[2].sub(/\./,'').sub(/,/,'.').to_f
+        {
+          :date => Date.parse(row[0]),
+          :amount => amount,
+          :description => row[1],
+          :currency => 'EUR'
+         }
+      end
+
+      def self.options
+        {:col_sep => ";", :headers => false}
+      end
+
+      def options
+        self.class.options
+      end
+    end # /IngCC
+
     class Ing
       require 'time'
 
@@ -220,6 +242,7 @@ TEMPLATE
         {
           'abn' => TotalRecall::ParseStrategy::Abn,
           'ing' => TotalRecall::ParseStrategy::Ing,
+          'ingcc' => TotalRecall::ParseStrategy::IngCC,
           'abncc' => TotalRecall::ParseStrategy::AbnCC
         }
       end
@@ -313,6 +336,7 @@ TEMPLATE
       table = Terminal::Table.new do |t|
         t.headings = 'Date', 'Amount', 'Description'
         data.each do |row|
+          next unless row
           t << [ row[:date], row[:amount], row[:description] ]
         end
       end

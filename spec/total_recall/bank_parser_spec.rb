@@ -55,3 +55,8 @@ describe TotalRecall::ParseStrategy::AbnCC do
   before{ @fixture = 'abncc' }
   it_behaves_like "a parser"
 end
+
+describe TotalRecall::ParseStrategy::IngCC do
+  before{ @fixture = 'ingcc' }
+  it_behaves_like "a parser"
+end
