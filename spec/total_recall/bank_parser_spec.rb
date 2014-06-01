@@ -1,62 +1,175 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe TotalRecall::BankParser do
-  context '#parse' do
-    subject{ described_class.new(:strategy => TotalRecall::ParseStrategy::Abn.new) }
+describe TotalRecall::Config do
+  include FakeFS::SpecHelpers
 
-    it "should return an Array" do
-      subject.parse(fixture_contents('abn')).class.should == Array
+  def stubbed_file(path, content)
+    # SOURCE http://edgeapi.rubyonrails.org/classes/String.html#method-i-strip_heredoc
+    indent = content.scan(/^[ \t]*(?=\S)/).min.size rescue 0
+    content = content.gsub(/^[ \t]{#{indent}}/, '')
+
+    FakeFS do
+      File.open(path, 'w'){|f| f.print content }
     end
   end
-end
 
+  def instance_with_config(config, file: 'config.yml')
+    stubbed_file(file, config)
+    described_class.new(file: file)
+  end
 
-shared_examples "a parser" do
-  context '#parse_row' do
-    it "should return a hash" do
-      CSV.parse(fixture_contents(@fixture), subject.options).each do |i|
-        parsed_row = subject.parse_row(i)
+  describe '#config' do
+    it 'yields the config as hash' do
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :raw: Some csv
+      :a: 1
+      CONFIG
 
-        parsed_row.class.should == Hash
-      end
-    end
-
-    it "should return the correct keys and classes" do
-      expected_keys_and_classes = {
-        :amount => Float,
-        :currency => String,
-        :description => String,
-        :date => Date
-      }
-
-      CSV.parse(fixture_contents(@fixture), subject.options).each do |i|
-        parsed_row = subject.parse_row(i)
-
-        parsed_row.keys.should =~ expected_keys_and_classes.keys
-        expected_keys_and_classes.each do |key, klass|
-          parsed_row.send(:[], key).class.should == klass
-        end
-      end
+      expect(instance.config).to eql({csv: { raw: 'Some csv'}, a: 1})
     end
   end
-end
 
-describe TotalRecall::ParseStrategy::Abn do
-  before{ @fixture = 'abn' }
-  it_behaves_like "a parser"
-end
+  describe '#csv' do
+    it 'yields csv assigned to :raw' do
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :raw: Some csv
+      CONFIG
 
-describe TotalRecall::ParseStrategy::Ing do
-  before{ @fixture = 'ing' }
-  it_behaves_like "a parser"
-end
+      expect(instance.csv).to eql(CSV.parse('Some csv'))
+    end
 
-describe TotalRecall::ParseStrategy::AbnCC do
-  before{ @fixture = 'abncc' }
-  it_behaves_like "a parser"
-end
+    it 'yields csv from file :file' do
+      csv_file = stubbed_file('some.csv', 'Some csv')
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :file: some.csv
+      CONFIG
 
-describe TotalRecall::ParseStrategy::IngCC do
-  before{ @fixture = 'ingcc' }
-  it_behaves_like "a parser"
+      expect(instance.csv).to eql(CSV.parse('Some csv'))
+    end
+
+    it 'yields csv from :file when both :raw and :file are configured' do
+      csv_file = stubbed_file('some.csv', 'Some csv')
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :file: some.csv
+        :raw: Some raw csv
+      CONFIG
+
+      expect(instance.csv).to eql(CSV.parse('Some csv'))
+    end
+
+    specify 'csv-options are passed on to CSV#read' do
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :options:
+          :option1: true
+      CONFIG
+
+      expect(CSV).to receive(:parse).with(anything(), { option1: true })
+      instance.csv
+    end
+  end
+
+  describe '#template' do
+    it 'yields template assigned to :raw' do
+      instance = instance_with_config(<<-CONFIG)
+      :template:
+        :raw: |-
+          Raw template
+          here
+      CONFIG
+
+      expect(instance.template).to eql("Raw template\nhere")
+    end
+
+    it 'yields template from file :file' do
+      template_file = stubbed_file('template.mustache', 'File template')
+      instance = instance_with_config(<<-CONFIG)
+      :template:
+        :file: template.mustache
+      CONFIG
+
+      expect(instance.template).to eql('File template')
+    end
+
+    it 'yields template from :file when both :raw and :file are configured' do
+      template_file = stubbed_file('template.mustache', 'File template')
+      instance = instance_with_config(<<-CONFIG)
+      :template:
+        :file: template.mustache
+        :raw: Raw template
+      CONFIG
+
+      expect(instance.template).to eql('File template')
+    end
+  end
+
+  describe 'YAML types' do
+    it 'allows proc-types' do
+      instance = instance_with_config(<<-CONFIG)
+      :a: !!proc 1 + 1
+      :b: !!proc |
+        1 + 1
+      CONFIG
+
+      expect(instance.config[:a].call).to eq 2
+      expect(instance.config[:b].call).to eq 2
+    end
+  end
+
+  describe '#context' do
+    it 'has a transaction per line of csv' do
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :raw: |-
+          1
+          1
+      :context:
+        :transactions:
+          :from: From
+          :to: !!proc 1 + 1
+          :amount: !!proc row[0]
+      CONFIG
+
+      transactions = instance.context[:transactions]
+      expect(transactions.size).to eq 2
+
+      transaction = transactions.first
+      expect(transaction).to match({from: 'From', to: 2, amount: "1"})
+    end
+
+    it 'adds defaults to every transaction' do
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :raw: |-
+          line 1
+          line 2
+      :context:
+        :transactions:
+          :__defaults__:
+            :default: !!proc 1
+          :from: From
+      CONFIG
+
+      transaction = instance.context[:transactions].first
+
+      expect(transaction).to match({from: 'From', default: 1})
+    end
+
+    it 'may contain any other settings' do
+      instance = instance_with_config(<<-CONFIG)
+      :csv:
+        :raw: some csv
+      :context:
+        :transactions:
+          :from: From
+        :a: 1
+      CONFIG
+
+      expect(instance.context).to match(transactions: [{from: 'From'}], a: 1)
+    end
+  end
 end

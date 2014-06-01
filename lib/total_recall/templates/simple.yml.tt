@@ -1,0 +1,35 @@
+---
+:total_recall:
+  :version: <%= @version %>
+:template:
+  :raw: |-
+    {{# transactions}}
+    {{date}} {{{description}}}
+      {{to}}    {{currency}} {{amount}}
+      {{from}}
+
+    {{/ transactions}}
+
+:csv:
+  #:file: <%= @name %>.csv
+  :raw: |-
+    "03.11.2013";"Foo";"04.11.2013";"1.638,00";""
+    "03.11.2013";"Bar";"04.11.2013";"-492,93";""
+  :options:
+    :col_sep: ";"
+    :headers: false
+
+:context:
+  :transactions:
+    :__defaults__:
+      :from: !!proc |
+        ask("What account provides these transactions?") do |q|
+          q.default = "Assets:Checking"
+        end
+      :currency: $
+    :date: !!proc Date.parse(row[0])
+    :description: !!proc row[1]
+    :amount: !!proc row[3]
+    :to: !!proc |
+      render_row(columns: [0, 1, 3, 4])
+      ask("To what account did the money go?")
