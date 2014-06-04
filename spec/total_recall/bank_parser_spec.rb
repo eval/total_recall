@@ -13,9 +13,10 @@ describe TotalRecall::Config do
     end
   end
 
-  def instance_with_config(config, file: 'config.yml')
-    stubbed_file(file, config)
-    described_class.new(file: file)
+  def instance_with_config(config, options = {})
+    options = {file: 'config.yml'}.merge(options)
+    stubbed_file(options[:file], config)
+    described_class.new(options)
   end
 
   describe '#config' do
