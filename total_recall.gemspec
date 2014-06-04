@@ -18,10 +18,10 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_dependency 'thor', '~> 0.19.1'
-  gem.add_dependency 'terminal-table', '~> 1.4.4'
-  gem.add_dependency 'highline', '~> 1.6.1'
-  gem.add_dependency 'mustache', '~> 0.99.5'
+  gem.add_dependency 'thor', '~> 0.19'
+  gem.add_dependency 'terminal-table', '~> 1.4'
+  gem.add_dependency 'highline', '~> 1.6'
+  gem.add_dependency 'mustache', '~> 0.99'
   gem.add_development_dependency "bundler", "~> 1.6"
   gem.add_development_dependency "rake"
   gem.add_development_dependency 'rspec', '~> 3.0.0'
