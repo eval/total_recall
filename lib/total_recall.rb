@@ -44,14 +44,16 @@ module TotalRecall
     #   _
     #
     # @return [String] the account-name
-    def ask_account(question, default: nil)
+    def ask_account(question, options = {})
+      options = { default: nil }.merge(options)
       highline.ask(question) do |q|
-        q.default = default if default
+        q.default = options[:default] if options[:default]
       end
     end
 
-    def render_row(columns: [])
-      _row = columns.map{|i| row[i] }
+    def render_row(options = {})
+      options = { columns: [] }.merge(options)
+      _row = options[:columns].map{|i| row[i] }
       $stderr.puts Terminal::Table.new(rows: [ _row ])
     end
   end
@@ -59,8 +61,9 @@ module TotalRecall
   class Config
     YAML::add_builtin_type('proc') {|_, val| eval("proc{ #{val} }") }
 
-    def initialize(file: 'total_recall.yml')
-      @config_file = File.expand_path(file)
+    def initialize(options = {})
+      options = {file: 'total_recall.yml'}.merge(options)
+      @config_file = File.expand_path(options[:file])
     end
 
     def config
