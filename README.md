@@ -1,39 +1,100 @@
-TotalRecall
-============
+# TotalRecall [![travis](https://secure.travis-ci.org/eval/total_recall.png?branch=master)](https://secure.travis-ci.org/#!/eval/total_recall)
 
-Turn your bank record csv's into a [Ledger](http://ledger-cli.org/3.0/doc/ledger3.html) journal.
+Turn **any** csv-file into a [Ledger](http://ledger-cli.org/) journal.
 
-Usage
-------------
+## Quickstart
 
-    $ total_recall
-    Tasks:
-      total_recall help [TASK]                                   # Describe available tasks or one specific task
-      total_recall ledger -i, --input=INPUT -p, --parser=PARSER  # Convert input to ledger-transactions
-      total_recall parse -i, --input=INPUT -p, --parser=PARSER   # Parses input-file and prints it
+### Generate a sample config
 
-    # typically you would do:
-    $ total_recall ledger -i abn.csv -p abn > abn.dat
+```bash
+total_recall sample
+# An annotated config 'sample.yml' will be written to CWD.
+```
 
-Develop
-------------
+### Generate a ledger
+
+The sample config contains 2 transactions.  
+Let's get 'em in a journal:
+
+```bash
+total_recall ledger -c sample.yml > sample.dat
+# What account provides these transactions?  |Assets:Checking|
+#
+# +------------+-----+----------+
+# | 03.11.2013 | Foo | 1.638,00 |
+# +------------+-----+----------+
+# To what account did the money go?
+# Expenses:Foo
+# +------------+-----+---------+
+# | 03.11.2013 | Bar | -492,93 |
+# +------------+-----+---------+
+# To what account did the money go?
+# Expenses:Bar
+```
+Now verify the ledger file:
+
+```bash
+ledger -f sample.dat balance
+
+#         $ -1.145,07  Assets:Checking
+#          $ 1.145,07  Expenses
+#           $ -492,93    Bar
+#          $ 1.638,00    Foo
+#--------------------
+#                   0
+```
+
+### Now what?
+
+May I suggest:
+* read `sample.yml`
+
+  It explains what options are available.
+* put your own csv in `sample.yml` and adjust the context
+
+## Usage
+
+```bash
+total_recall
+
+# Commands:
+#  total_recall help [COMMAND]              # Describe available commands or one specific command
+#  total_recall init NAME                   # Generate a minimal config NAME.yml
+#  total_recall ledger -c, --config=CONFIG  # Convert the config to a ledger
+#  total_recall sample                      # Generate an annotated config
+
+# typically you would do:
+total_recall init my-bank
+
+# fiddle with the settings in 'my-bank.yml' and test-run it:
+total_recal ledger -c my-bank.yml
+# to skip prompts just provide dummy-data:
+yes 'Dummy' | total_recal ledger -c my-bank.yml
+
+# export it to a journal:
+total_recall ledger -c my-bank.yml > my-bank.dat
+
+# verify correctness with ledger:
+ledger -f my-bank.dat bal
+```
+
+## Develop
     
-    $ git clone git://github.com/eval/total_recall.git
-    $ cd total_recall
-    $ bundle
-    $ bundle exec rake spec
-
-Author
-------
+```bash
+git clone git://github.com/eval/total_recall.git
+cd total_recall
+bundle
+bundle exec rake spec
+```
+## Author
 
 Gert Goet (eval) :: gert@thinkcreate.nl :: @gertgoet
 
-License
-------
+## License
 
 (The MIT license)
 
-Copyright (c) 2011 Gert Goet, ThinkCreate
+Copyright (c) 2014 Gert Goet, ThinkCreate
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -53,3 +114,4 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
