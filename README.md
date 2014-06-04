@@ -2,6 +2,12 @@
 
 Turn **any** csv-file into a [Ledger](http://ledger-cli.org/) journal.
 
+## Install
+
+```bash
+gem install total_recall
+```
+
 ## Quickstart
 
 ### Generate a sample config
