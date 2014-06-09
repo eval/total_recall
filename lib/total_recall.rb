@@ -158,5 +158,10 @@ module TotalRecall
       @name = name
       template("simple.yml.tt", destination)
     end
+
+    desc "version", "Show total_recall version"
+    def version
+      puts TotalRecall::VERSION
+    end
   end
 end
