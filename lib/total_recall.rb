@@ -20,7 +20,7 @@ module TotalRecall
       @row = row
       transactions_config.each do |k,v|
         next if k[/^__/]
-        self.public_send("#{k}=", value_for(k, v))
+        self[k] = value_for(k, v)
       end
       self
     end
@@ -130,7 +130,7 @@ module TotalRecall
           def initialize(values = {}, options = {})
             @config = options[:config]
             values.each do |k,v|
-              self.public_send("#{k}=", v)
+              self[k] = value_for(k, v)
             end
           end
         end

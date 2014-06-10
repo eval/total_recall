@@ -215,12 +215,14 @@ describe TotalRecall::Config do
         :context:
           :transactions:
             :__defaults__:
-              :a: 1
+              :a: !!proc 2
+              :b?: true
             :a: !!proc |
               default.succ
+            :b?: true
         CONFIG
 
-        expect(instance.transactions.first).to match({a: 2})
+        expect(instance.transactions.first).to match({a: 3, b?: true})
       end
     end
   end
