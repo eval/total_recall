@@ -206,5 +206,22 @@ describe TotalRecall::Config do
         expect(instance.transactions.first).to match({a: 1})
       end
     end
+
+    describe '#default' do
+      it 'gives access to the default' do
+        instance = instance_with_config(<<-CONFIG)
+        :csv:
+          :raw: some csv
+        :context:
+          :transactions:
+            :__defaults__:
+              :a: 1
+            :a: !!proc |
+              default.succ
+        CONFIG
+
+        expect(instance.transactions.first).to match({a: 2})
+      end
+    end
   end
 end

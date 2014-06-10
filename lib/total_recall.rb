@@ -20,10 +20,20 @@ module TotalRecall
       @row = row
       transactions_config.each do |k,v|
         next if k[/^__/]
-        value = v.respond_to?(:call) ? instance_eval(&v) : v
-        self.public_send("#{k}=", value)
+        self.public_send("#{k}=", value_for(k, v))
       end
       self
+    end
+
+    def value_for(key, v)
+      if v.respond_to?(:call)
+        @default = self[key.to_sym]
+        instance_eval(&v)
+      else
+        v
+      end
+    ensure
+      @default = nil
     end
 
     def highline
@@ -115,7 +125,7 @@ module TotalRecall
         Class.new(Struct.new(*transaction_attributes)) do
           include SessionHelpers
 
-          attr_reader :config, :row
+          attr_reader :config, :row, :default
 
           def initialize(values = {}, options = {})
             @config = options[:config]
@@ -139,7 +149,7 @@ module TotalRecall
       @transaction_defaults ||= begin
         defaults = transactions_config[:__defaults__] || {}
         defaults.each_with_object({}) do |(k,v), result|
-          result[k] = v.respond_to?(:call) ? session_class.new({}, :config => config).instance_eval(&v) : v
+          result[k] = session_class.new({}, :config => config).value_for(k, v)
         end
       end
     end
