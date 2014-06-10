@@ -130,7 +130,7 @@ module TotalRecall
     def transactions
       @transactions ||= begin
         csv.each_with_object([]) do |row, transactions|
-          transactions << session.extract_transaction(row).to_h
+          transactions << Hash[session.extract_transaction(row).each_pair.to_a]
         end
       end
     end
