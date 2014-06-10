@@ -4,26 +4,24 @@ require "mustache"
 require 'csv'
 
 module TotalRecall
-  class Helper
+  module SessionHelpers
     require 'highline/import'
     require "terminal-table"
 
-    attr_reader :config
-    attr_accessor :row
-
-    def initialize(config = {})
-      @config = config
+    def transaction
+      self
     end
 
-    def with_row(row, &block)
-      @row = row
-      instance_eval(&block)
-    ensure
-      @row = nil
+    def config
+      @config
     end
 
-    def highline
-      @highline ||= HighLine.new($stdin, $stderr)
+    def row
+      @row
+    end
+
+    def default
+      @default
     end
 
     def ask(question, &block)
@@ -53,13 +51,43 @@ module TotalRecall
 
     def render_row(options = {})
       options = { columns: [] }.merge(options)
-      _row = options[:columns].map{|i| row[i] }
+      _row = options[:columns].map {|i| row[i] }
       $stderr.puts Terminal::Table.new(rows: [ _row ])
+    end
+
+
+    def extract_transaction(row)
+      @row = row
+      transactions_config.each do |k,v|
+        next if k[/^__/]
+        self[k] = value_for(k, v)
+      end
+      self
+    end
+
+    protected
+    def value_for(key, v)
+      if v.respond_to?(:call)
+        @default = self[key.to_sym]
+        instance_eval(&v)
+      else
+        v
+      end
+    ensure
+      @default = nil
+    end
+
+    def transactions_config
+      config[:context][:transactions]
+    end
+
+    def highline
+      @highline ||= HighLine.new($stdin, $stderr)
     end
   end
 
   class Config
-    YAML::add_builtin_type('proc') {|_, val| eval("proc{ #{val} }") }
+    YAML::add_builtin_type('proc') {|_, val| eval("proc { #{val} }") }
 
     def initialize(options = {})
       options = {file: 'total_recall.yml'}.merge(options)
@@ -93,36 +121,48 @@ module TotalRecall
       end
     end
 
-    def session
-      @session ||= Helper.new(config)
-    end
-
     def context
       @context ||= config[:context].merge(transactions: transactions)
     end
 
-    def transactions
-      @transactions ||= begin
-        csv.each_with_object([]) do |row, result|
-          result << transaction_defaults.merge(transactions_config).each_with_object({}) do |(k,v), cfg|
-            next if k[/^__/]
-            cfg[k] = v.respond_to?(:call) ? session.with_row(row, &v) : v
+    def session
+      @session ||= session_class.new(transactions_config_defaults, :config => config)
+    end
+
+    def transaction_attributes
+      @transaction_attributes ||= transactions_config.dup.delete_if{|k,_| k[/__/]}.keys |
+        transactions_config_defaults.keys
+    end
+
+    def session_class
+      @session_class ||= begin
+        Class.new(Struct.new(*transaction_attributes)) do
+          include SessionHelpers
+
+          def initialize(values = {}, options = {})
+            @config = options[:config]
+            values.each do |k,v|
+              self[k] = value_for(k, v)
+            end
           end
         end
       end
     end
 
-    def transaction_defaults
-      @transaction_defaults ||= begin
-        defaults = transactions_config[:__defaults__] || {}
-        defaults.each_with_object({}) do |(k,v), result|
-          result[k] = v.respond_to?(:call) ? session.with_row(nil, &v) : v
+    def transactions
+      @transactions ||= begin
+        csv.each_with_object([]) do |row, transactions|
+          transactions << Hash[session.extract_transaction(row).each_pair.to_a]
         end
       end
     end
 
     def transactions_config
       config[:context][:transactions]
+    end
+
+    def transactions_config_defaults
+      transactions_config[:__defaults__] || {}
     end
 
     def ledger
@@ -136,7 +176,7 @@ module TotalRecall
     include Thor::Actions
     source_root File.expand_path('../total_recall/templates', __FILE__)
 
-    desc "ledger", "Convert the config to a ledger"
+    desc "ledger", "Convert CONFIG to a ledger"
     method_option :config, :aliases => "-c", :desc => "Config file", :required => true
     def ledger
       puts TotalRecall::Config.new(file: File.expand_path(options[:config])).ledger

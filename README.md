@@ -14,7 +14,7 @@ gem install total_recall
 
 ```bash
 total_recall sample
-# An annotated config 'sample.yml' will be written to CWD.
+# An annotated config 'sample.yml' will be written the current directory.
 ```
 
 ### Generate a ledger
@@ -64,10 +64,11 @@ May I suggest:
 total_recall
 
 # Commands:
-#  total_recall help [COMMAND]              # Describe available commands or one specific command
-#  total_recall init NAME                   # Generate a minimal config NAME.yml
-#  total_recall ledger -c, --config=CONFIG  # Convert the config to a ledger
-#  total_recall sample                      # Generate an annotated config
+#   total_recall help [COMMAND]              # Describe available commands or one specific command
+#   total_recall init NAME                   # Generate a minimal config NAME.yml
+#   total_recall ledger -c, --config=CONFIG  # Convert CONFIG to a ledger
+#   total_recall sample                      # Generate an annotated config
+#   total_recall version                     # Show total_recall version
 
 # typically you would do:
 total_recall init my-bank
