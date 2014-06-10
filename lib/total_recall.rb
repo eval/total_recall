@@ -4,7 +4,7 @@ require "mustache"
 require 'csv'
 
 module TotalRecall
-  module SessionHelpers
+  module DefaultHelper
     require 'highline/import'
     require "terminal-table"
 
@@ -55,7 +55,6 @@ module TotalRecall
       $stderr.puts Terminal::Table.new(rows: [ _row ])
     end
 
-
     def extract_transaction(row)
       @row = row
       transactions_config.each do |k,v|
@@ -86,11 +85,27 @@ module TotalRecall
     end
   end
 
+  # Include your module into {SessionHelper} if you want to
+  # add helpers or redefine existing ones.
+  #
+  # @example
+  #   module MyExtension
+  #     def guess_account(question, options = {})
+  #       guess = AccountGuesser.new.guess
+  #       ask_account("What acount provided this?", default: guess)
+  #     end
+  #   end
+  #
+  #   TotalRecall::SessionHelper.include MyExtension
+  module SessionHelper
+    include DefaultHelper
+  end
+
   class Config
     YAML::add_builtin_type('proc') {|_, val| eval("proc { #{val} }") }
 
     def initialize(options = {})
-      options = {file: 'total_recall.yml'}.merge(options)
+      options = { file: 'total_recall.yml' }.merge(options)
       @config_file = File.expand_path(options[:file])
     end
 
@@ -130,14 +145,16 @@ module TotalRecall
     end
 
     def transaction_attributes
-      @transaction_attributes ||= transactions_config.dup.delete_if{|k,_| k[/__/]}.keys |
-        transactions_config_defaults.keys
+      @transaction_attributes ||= begin
+        transactions_config.dup.delete_if{|k,_| k[/__/]}.keys |
+          transactions_config_defaults.keys
+      end
     end
 
     def session_class
       @session_class ||= begin
         Class.new(Struct.new(*transaction_attributes)) do
-          include SessionHelpers
+          include SessionHelper
 
           def initialize(values = {}, options = {})
             @config = options[:config]
@@ -178,8 +195,12 @@ module TotalRecall
 
     desc "ledger", "Convert CONFIG to a ledger"
     method_option :config, :aliases => "-c", :desc => "Config file", :required => true
+    method_option :require, :aliases => "-r", :desc => "File to load"
     def ledger
-      puts TotalRecall::Config.new(file: File.expand_path(options[:config])).ledger
+      load(options[:require]) if options[:require]
+
+      config_path = File.expand_path(options[:config])
+      puts TotalRecall::Config.new(file: config_path).ledger
     end
 
     desc "sample", "Generate an annotated config"
