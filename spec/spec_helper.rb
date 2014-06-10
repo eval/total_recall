@@ -1,7 +1,4 @@
-require "rubygems"
-require "bundler"
-Bundler.setup
+require "bundler/setup"
+Bundler.require :default, :test
 
-$:.unshift File.expand_path("../../lib", __FILE__)
-require "total_recall"
 require 'fakefs/spec_helpers'

@@ -4,22 +4,26 @@ require "mustache"
 require 'csv'
 
 module TotalRecall
-  class Helper
+  module SessionHelpers
     require 'highline/import'
     require "terminal-table"
 
-    attr_reader :config
-    attr_accessor :row
-
-    def initialize(config = {})
-      @config = config
+    def transaction
+      self
     end
 
-    def with_row(row, &block)
+    def transactions_config
+      config[:context][:transactions]
+    end
+
+    def extract_transaction(row)
       @row = row
-      instance_eval(&block)
-    ensure
-      @row = nil
+      transactions_config.each do |k,v|
+        next if k[/^__/]
+        value = v.respond_to?(:call) ? instance_eval(&v) : v
+        self.public_send("#{k}=", value)
+      end
+      self
     end
 
     def highline
@@ -93,21 +97,40 @@ module TotalRecall
       end
     end
 
-    def session
-      @session ||= Helper.new(config)
-    end
-
     def context
       @context ||= config[:context].merge(transactions: transactions)
     end
 
+    def session
+      @session ||= session_class.new(transaction_defaults, :config => config)
+    end
+
+    def transaction_attributes
+      @transaction_attributes ||= transactions_config.dup.delete_if{|k,_| k[/__/]}.keys |
+        (transactions_config[:__defaults__] || {}).keys
+    end
+
+    def session_class
+      @session_class ||= begin
+        Class.new(Struct.new(*transaction_attributes)) do
+          include SessionHelpers
+
+          attr_reader :config, :row
+
+          def initialize(values = {}, options = {})
+            @config = options[:config]
+            values.each do |k,v|
+              self.public_send("#{k}=", v)
+            end
+          end
+        end
+      end
+    end
+
     def transactions
       @transactions ||= begin
-        csv.each_with_object([]) do |row, result|
-          result << transaction_defaults.merge(transactions_config).each_with_object({}) do |(k,v), cfg|
-            next if k[/^__/]
-            cfg[k] = v.respond_to?(:call) ? session.with_row(row, &v) : v
-          end
+        csv.each_with_object([]) do |row, transactions|
+          transactions << session.extract_transaction(row).to_h
         end
       end
     end
@@ -116,7 +139,7 @@ module TotalRecall
       @transaction_defaults ||= begin
         defaults = transactions_config[:__defaults__] || {}
         defaults.each_with_object({}) do |(k,v), result|
-          result[k] = v.respond_to?(:call) ? session.with_row(nil, &v) : v
+          result[k] = v.respond_to?(:call) ? session_class.new({}, :config => config).instance_eval(&v) : v
         end
       end
     end

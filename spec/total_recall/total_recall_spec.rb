@@ -173,4 +173,38 @@ describe TotalRecall::Config do
       expect(instance.context).to match(transactions: [{from: 'From'}], a: 1)
     end
   end
+
+  describe 'helper methods' do
+    describe '#transaction' do
+      it 'gives access to the existing attributes' do
+        instance = instance_with_config(<<-CONFIG)
+        :csv:
+          :raw: some csv
+        :context:
+          :transactions:
+            :a: attribute a
+            :b: !!proc |
+              %|not %s| % transaction.a
+        CONFIG
+
+        expect(instance.transactions.first).to match({a: 'attribute a', b: 'not attribute a'})
+      end
+    end
+
+    describe '#config' do
+      it 'gives access to the full config' do
+        instance = instance_with_config(<<-CONFIG)
+        :csv:
+          :raw: some csv
+        :context:
+          :transactions:
+            :a: !!proc |
+              config[:a]
+        :a: 1
+        CONFIG
+
+        expect(instance.transactions.first).to match({a: 1})
+      end
+    end
+  end
 end
