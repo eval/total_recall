@@ -1,4 +1,4 @@
-# 0.5.0 / unreleased
+# 0.5.0 / 2014-06-11
 
 * extend the ledger subcommand by passing it a file with customizations
 
