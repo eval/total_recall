@@ -85,6 +85,35 @@ total_recall ledger -c my-bank.yml > my-bank.dat
 ledger -f my-bank.dat bal
 ```
 
+## Extensibility
+
+You can extend the ledger subcommand by passing a file with additions to it:
+
+```
+total_recall ledger -c my-bank.yml -r ./my_extension.rb
+```
+
+This makes it possible to add helpers or redefine existing ones:
+
+```
+cat my_extension.rb
+module MyExtension
+  # adding some options to an existing helper:
+  def ask_account(question, options = {})
+    question.upcase! if options.delete(:scream)
+    super
+  end
+
+  # a new helper:
+  def guess_account(question, options = {})
+    guess = Guesser.new.guess
+    ask_account(question, default: guess)
+  end
+end
+
+TotalRecall::SessionHelper.include MyExtension
+```
+
 ## Develop
     
 ```bash
