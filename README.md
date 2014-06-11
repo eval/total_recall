@@ -14,7 +14,7 @@ gem install total_recall
 
 ```bash
 total_recall sample
-# An annotated config 'sample.yml' will be written the current directory.
+# An annotated config 'sample.yml' will be written to the current directory.
 ```
 
 ### Generate a ledger
