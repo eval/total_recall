@@ -107,6 +107,7 @@ module TotalRecall
     def initialize(options = {})
       options = { file: 'total_recall.yml' }.merge(options)
       @config_file = File.expand_path(options[:file])
+      @transactions_only = !!options[:transactions_only]
     end
 
     def config
@@ -133,6 +134,26 @@ module TotalRecall
     def template
       @template ||= begin
         template_file ? File.read(template_file) : config[:template][:raw]
+      end
+    end
+
+    def transactions_only_template
+      @transactions_only_template ||= begin
+        Mustache::Template.new("").tap do |t|
+          _transactions_tokens = proc { transactions_tokens }
+          t.define_singleton_method(:tokens) do |*|
+            _transactions_tokens.call
+          end
+        end
+      end
+    end
+
+    def transactions_tokens
+      @transactions_tokens ||= begin
+        Mustache::Template.new(template).tokens.detect do |type, tag, *rest|
+          type == :mustache && tag == :section &&
+            [:mustache, :fetch, ["transactions"]]
+        end
       end
     end
 
@@ -183,7 +204,11 @@ module TotalRecall
     end
 
     def ledger
-      Mustache.render(template, context)
+      tmp = @transactions_only ?
+            transactions_only_template :
+            template
+
+      Mustache.render(tmp, context)
     end
   end
 
@@ -196,11 +221,13 @@ module TotalRecall
     desc "ledger", "Convert CONFIG to a ledger"
     method_option :config, :aliases => "-c", :desc => "Config file", :required => true
     method_option :require, :aliases => "-r", :desc => "File to load"
+    method_option :transactions_only, :type => :boolean
     def ledger
       load(options[:require]) if options[:require]
 
       config_path = File.expand_path(options[:config])
-      puts TotalRecall::Config.new(file: config_path).ledger
+      puts TotalRecall::Config.new(file: config_path,
+                                   :transactions_only => options[:transactions_only]).ledger
     end
 
     desc "sample", "Generate an annotated config"
