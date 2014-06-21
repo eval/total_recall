@@ -106,6 +106,28 @@ describe TotalRecall::Config do
 
       expect(instance.template).to eql('File template')
     end
+
+    context 'transactions only' do
+      it 'takes only the transactions-section of the template into account' do
+        instance = instance_with_config(<<-CONFIG, :only_transactions => true)
+        :csv:
+          :raw: |-
+            row1
+        :context:
+          :a: 1
+          :transactions:
+            :b: !!proc row[0]
+        :template:
+          :raw: |-
+            {{a}}
+            {{# transactions}}
+            {{b}}
+            {{/ transactions}}
+        CONFIG
+
+        expect(instance.ledger).to eql("row1\n")
+      end
+    end
   end
 
   describe 'YAML types' do

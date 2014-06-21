@@ -1,3 +1,13 @@
+# 0.6.0 / unreleased
+
+* added option to use only transaction-section from template
+
+  This makes adding transactions to an existing ledger-file easier.
+
+  ```
+  $ total_recall ledger -c bank.yml --transactions-only >> bank.dat
+  ```
+
 # 0.5.0 / 2014-06-11
 
 * extend the ledger subcommand by passing it a file with customizations
