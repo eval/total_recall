@@ -109,7 +109,7 @@ describe TotalRecall::Config do
 
     context 'transactions only' do
       it 'takes only the transactions-section of the template into account' do
-        instance = instance_with_config(<<-CONFIG, :only_transactions => true)
+        instance = instance_with_config(<<-CONFIG, :transactions_only => true)
         :csv:
           :raw: |-
             row1
