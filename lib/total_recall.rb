@@ -252,9 +252,10 @@ module TotalRecall
       template("simple.yml.tt", destination)
     end
 
-    desc "version", "Show total_recall version"
+    desc "version, --version, -v", "Show total_recall version"
     def version
       puts TotalRecall::VERSION
     end
+    map %w(-v --version) => :version
   end
 end
