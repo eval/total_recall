@@ -1,6 +1,6 @@
 require 'yaml'
-require "thor"
-require "mustache"
+require 'thor'
+require 'mustache'
 require 'csv'
 
 module TotalRecall

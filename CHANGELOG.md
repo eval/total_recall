@@ -1,5 +1,9 @@
 # 0.6.0 / unreleased
 
+* move repository to GitLab
+
+* upgrade dependencies
+
 * added option to use only transaction-section from template
 
   This makes adding transactions to an existing ledger-file easier.

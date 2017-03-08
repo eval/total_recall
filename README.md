@@ -1,4 +1,5 @@
-# TotalRecall [![travis](https://secure.travis-ci.org/eval/total_recall.png?branch=master)](https://secure.travis-ci.org/#!/eval/total_recall)
+# TotalRecall [![build status](https://gitlab.com/eval/total_recall/badges/master/build.svg)](https://gitlab.com/eval/total_recall/commits/master)
+
 
 Turn **any** csv-file into a [Ledger](http://ledger-cli.org/) journal.
 
