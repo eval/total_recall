@@ -50,10 +50,10 @@ After installation you run `total_recall init bank` to generate the following fi
       ask_account("To what account did the money go?")
 ```
 
-The template-section is pretty straightforward; you can add any variable you need using the mustache-syntax.  
-The csv-section defines where your csv comes from and what parse options you be used. It's best to start with a csv-snippet from your source to `raw` in order to test-run your context-section.
+The `template`-section is pretty straightforward: you can add any variable you need using the [mustache-syntax](http://mustache.github.io/mustache.5.html).  
+The `csv`-section defines where csv comes from and what parse-options should be used. It's best to start with a csv-snippet in `raw` (and leave `file` commented) in order to test-run the config.
 
-In the `context`-section the actual mapping is done: in this section your should define a key for every template-variable.  
+In the `context`-section the actual mapping is done: in this section your should define a key for every variable in the template.  
 A key's value is derived from the csv via Ruby. This can be done via a simple mapping: `:date: !!proc row[0]`, via some specific operation: `:data: !!proc Date.parse(row[0]).iso8601` or via one of the [interactive helpers](https://gitlab.com/eval/total_recall/blob/v0.6.0/lib/total_recall.rb#L27-50) as you can see for the `to`-field above.  
 Fields can also have default-values: the `from`-field for example is the same for all rows.
 
@@ -73,7 +73,7 @@ As it's all Ruby, you can make the mapping as smart as you like:
 ...
 ```
 
-See Extensibility below for providing your own Ruby module with helpers (i.e. your own self-learning account-guesser!).
+See [Extensibility](#extensibility) below for providing your own Ruby module with helpers (i.e. your own self-learning account-guesser!).
 
 Once your config is done, you can give it a spin:
 ```bash
@@ -91,7 +91,7 @@ $ total_recall ledger -c bank.yml > bank.dat
 
 That's it!
 
-To see an annotated config-file do:
+To see an extensive annotated config-file do:
 ```bash
 $ total_recall sample
 ```
