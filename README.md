@@ -13,7 +13,7 @@ Instead, one creates a yaml-config consisting of:
 ## Example
 
 After installation you run `total_recall init bank` to generate the following file:
-```
+```yaml
 # file: bank.yml
 :total_recall:
   :version: 0.6.0

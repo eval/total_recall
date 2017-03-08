@@ -1,5 +1,7 @@
 # 0.7.0 / unreleased
 
+* '--version' and '-v' handled by version-subcommand
+
 * pass csv-file to ledger-subcommand:
 
     ```bash
