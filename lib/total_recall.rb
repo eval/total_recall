@@ -105,7 +105,8 @@ module TotalRecall
     YAML::add_builtin_type('proc') {|_, val| eval("proc { #{val} }") }
 
     def initialize(options = {})
-      options = { file: 'total_recall.yml' }.merge(options)
+      options = { file: 'total_recall.yml', csv_file: nil }.merge(options)
+      @csv_file = File.expand_path(options[:csv_file]) if options[:csv_file]
       @config_file = File.expand_path(options[:file])
       @transactions_only = !!options[:transactions_only]
     end
@@ -115,8 +116,10 @@ module TotalRecall
     end
 
     def csv_file
-      config[:csv][:file] &&
-        File.expand_path(config[:csv][:file], File.dirname(@config_file))
+      @csv_file ||= begin
+        config[:csv][:file] &&
+          File.expand_path(config[:csv][:file], File.dirname(@config_file))
+      end
     end
 
     def csv
@@ -219,14 +222,16 @@ module TotalRecall
     source_root File.expand_path('../total_recall/templates', __FILE__)
 
     desc "ledger", "Convert CONFIG to a ledger"
-    method_option :config, :aliases => "-c", :desc => "Config file", :required => true
+    method_option :config,  :aliases => "-c", :desc => "Config file", :required => true
     method_option :require, :aliases => "-r", :desc => "File to load"
+    method_option :csv,     :aliases => "-f", :desc => "csv file"
     method_option :transactions_only, :type => :boolean
     def ledger
       load(options[:require]) if options[:require]
 
       config_path = File.expand_path(options[:config])
       puts TotalRecall::Config.new(file: config_path,
+                                   csv_file: options[:csv],
                                    :transactions_only => options[:transactions_only]).ledger
     end
 

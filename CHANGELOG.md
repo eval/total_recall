@@ -1,3 +1,15 @@
+# 0.7.0 / unreleased
+
+* pass csv-file to ledger-subcommand:
+
+    ```bash
+    $ total_recall ledger -c bank.yml --csv ~/Downloads/bank.csv
+    ```
+
+* init-subcommand skips yml-extension if provided
+
+
+
 # 0.6.0 / 2017-03-08
 
 * move repository to GitLab
