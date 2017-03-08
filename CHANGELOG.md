@@ -1,4 +1,4 @@
-# 0.6.0 / unreleased
+# 0.6.0 / 2017-03-08
 
 * move repository to GitLab
 
