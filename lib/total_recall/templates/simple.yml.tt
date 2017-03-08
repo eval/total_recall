@@ -13,13 +13,14 @@
     {{/ transactions}}
 
 :csv:
-  #:file: <%= @name %>.csv
+  #:file: <%= @name %>.csv # also overwritable via ledger-subcommand. See `total_recall help ledger`.
   :raw: |-
     "2013-11-01","Foo","2013-11-02","1.638,00"
     "2013-11-02","Bar","2013-11-03","-492,93"
   :options:
     #:col_sep: ";"
     #:headers: false
+    #:header_converters: :symbol # row[:date] rather than row[0]. Requires headers.
 
 :context:
   :transactions:

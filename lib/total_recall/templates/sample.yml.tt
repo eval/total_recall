@@ -34,7 +34,7 @@
   # The location of :file: is relative to this file.
   # :file: takes precedence over :raw:
   #
-  #:file: sample.csv
+  #:file: sample.csv # also overwritable via ledger-subcommand. See `total_recall help ledger`.
   :raw: |-
     "date";"description";"effective_data";"amount"
     "2013-11-01";"Foo";"2013-11-02";"1.638,00"
