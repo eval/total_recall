@@ -37,8 +37,8 @@
   #:file: sample.csv
   :raw: |-
     "date";"description";"effective_data";"amount"
-    "03.11.2013";"Foo";"04.11.2013";"1.638,00"
-    "03.11.2013";"Bar";"04.11.2013";"-492,93"
+    "2013-11-01","Foo","2013-11-02","1.638,00"
+    "2013-11-02","Bar","2013-11-03","-492,93"
   :options:
     # Any option accepted by CSV#new (http://www.ruby-doc.org/stdlib-2.1.1/libdoc/csv/rdoc/CSV.html#method-c-new).
     :col_sep: ";"
