@@ -58,15 +58,15 @@
                       default: 'Assets:Checking')
       :currency: $
     # ...and fields that vary per transaction.
-    # Helper method exist such as `row`, `ask_account` (see `TotalRecall::SessionHelper` for more).
+    # Helper method exist such as `row`, `ask_account` (see https://gitlab.com/eval/total_recall/blob/v0.6.0/lib/total_recall.rb#L7 for more).
     :date: !!proc row[:date]
     :description: !!proc row[:description]
     :amount: !!proc row[:amount]
     :currency: !!proc |
-      case row[:description]
+      case row[:description] # `this.description` can also be used: this would be the 'processed' description.
       when /some regex to detect non-dollar/ then '€'
       else
-        default
+        default # the value for this field in __defaults__
       end
     :to: !!proc |
       # show the row and let the user decide
