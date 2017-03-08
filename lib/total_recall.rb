@@ -240,10 +240,10 @@ module TotalRecall
 
     desc "init NAME", "Generate a minimal config NAME.yml"
     def init(name = "total_recall")
-      destination = name + ".yml"
+      destination = name[/\.yml$/] ? name : (name + ".yml")
 
       @version = TotalRecall::VERSION
-      @name = name
+      @name = destination.split(/\.yml$/).first
       template("simple.yml.tt", destination)
     end
 
