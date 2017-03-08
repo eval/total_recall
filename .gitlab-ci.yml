@@ -1,9 +1,11 @@
 .spec: &spec
+  stage: test
   tags:
     - docker
   script:
     - bundle install --binstubs --path vendor --without production --jobs $(nproc) > /dev/null
     - bin/rspec
+    - gem build total_recall.gemspec
 
 spec2.1:
   image: ruby:2.1
@@ -16,3 +18,4 @@ spec2.3:
 spec2.4:
   image: ruby:2.4
   <<: *spec
+  
