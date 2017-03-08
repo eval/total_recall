@@ -8,7 +8,7 @@
 
     This makes adding transactions to an existing ledger-file easier.
 
-    ```
+    ```bash
     $ total_recall ledger -c bank.yml --transactions-only >> bank.dat
     ```
 
@@ -16,7 +16,7 @@
 
 * extend the ledger subcommand by passing it a file with customizations
 
-    ```
+    ```ruby
     $ cat my_extension.rb
     module MyExtension
       def ask_account(*args)
