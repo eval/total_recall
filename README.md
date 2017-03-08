@@ -96,7 +96,7 @@ total_recall ledger -c my-bank.yml -r ./my_extension.rb
 
 This makes it possible to add helpers or redefine existing ones:
 
-```
+```ruby
 cat my_extension.rb
 module MyExtension
   # adding some options to an existing helper:
@@ -131,7 +131,7 @@ Gert Goet (eval) :: gert@thinkcreate.nl :: @gertgoet
 
 (The MIT license)
 
-Copyright (c) 2014 Gert Goet, ThinkCreate
+Copyright (c) 2017 Gert Goet, ThinkCreate
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
