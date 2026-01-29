@@ -1,4 +1,11 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
 
-# Specify your gem's dependencies in total_recall.gemspec
+source "https://rubygems.org"
+
 gemspec
+
+gem "rake", "~> 13.0"
+
+gem "rspec", "~> 3.0"
+
+gem "fakefs"

@@ -1,5 +1,20 @@
 # 0.7.0 / unreleased
 
+* modernize for Ruby 3.3+
+
+  - target Ruby >= 3.3.0, test on 3.3 and 3.4
+  - update all dependencies (thor 1.x, terminal-table 3.x, highline 3.x)
+  - use `YAML.unsafe_load_file` (required since Ruby 3.1 for custom YAML types)
+  - add frozen_string_literal to all Ruby files
+
+* switch to GitHub Actions CI with release workflow
+
+  - add `.github/workflows/main.yml` for CI
+  - add `.github/workflows/release.yml` for automated gem publishing on tag push
+  - remove `.gitlab-ci.yml`
+
+* add mise.toml for Ruby version management
+
 * '--version' and '-v' handled by version-subcommand
 
 * pass csv-file to ledger-subcommand:
@@ -10,6 +25,7 @@
 
 * init-subcommand skips yml-extension if provided
 
+* remove duplicate `exe/total_recall.rb`
 
 
 # 0.6.0 / 2017-03-08
@@ -73,4 +89,3 @@
 # 0.4.0 / 2014-06-04
 
 * Add yaml-config.
-

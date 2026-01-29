@@ -1,0 +1,6 @@
+[tools]
+ruby = "3.4"
+
+[env]
+_.path = ["bin"]
+PROJECT_ROOT = "{{config_root}}"

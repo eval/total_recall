@@ -1,11 +1,13 @@
-require 'yaml'
-require 'thor'
-require 'mustache'
-require 'csv'
+# frozen_string_literal: true
+
+require "yaml"
+require "thor"
+require "mustache"
+require "csv"
 
 module TotalRecall
   module DefaultHelper
-    require 'highline/import'
+    require "highline"
     require "terminal-table"
 
     def transaction
@@ -43,21 +45,21 @@ module TotalRecall
     #
     # @return [String] the account-name
     def ask_account(question, options = {})
-      options = { default: nil }.merge(options)
+      options = {default: nil}.merge(options)
       highline.ask(question) do |q|
         q.default = options[:default] if options[:default]
       end
     end
 
     def render_row(options = {})
-      options = { columns: [] }.merge(options)
-      _row = options[:columns].map {|i| row[i] }
-      $stderr.puts Terminal::Table.new(rows: [ _row ])
+      options = {columns: []}.merge(options)
+      _row = options[:columns].map { |i| row[i] }
+      $stderr.puts Terminal::Table.new(rows: [_row])
     end
 
     def extract_transaction(row)
       @row = row
-      transactions_config.each do |k,v|
+      transactions_config.each do |k, v|
         next if k[/^__/]
         self[k] = value_for(k, v)
       end
@@ -65,6 +67,7 @@ module TotalRecall
     end
 
     protected
+
     def value_for(key, v)
       if v.respond_to?(:call)
         @default = self[key.to_sym]
@@ -102,17 +105,17 @@ module TotalRecall
   end
 
   class Config
-    YAML::add_builtin_type('proc') {|_, val| eval("proc { #{val} }") }
+    YAML.add_builtin_type("proc") { |_, val| eval("proc { #{val} }") }
 
     def initialize(options = {})
-      options = { file: 'total_recall.yml', csv_file: nil }.merge(options)
+      options = {file: "total_recall.yml", csv_file: nil}.merge(options)
       @csv_file = File.expand_path(options[:csv_file]) if options[:csv_file]
       @config_file = File.expand_path(options[:file])
       @transactions_only = !!options[:transactions_only]
     end
 
     def config
-      @config ||= YAML.load_file(@config_file)
+      @config ||= YAML.unsafe_load_file(@config_file)
     end
 
     def csv_file
@@ -125,7 +128,7 @@ module TotalRecall
     def csv
       @csv ||= begin
         csv_raw = csv_file ? File.read(csv_file) : config[:csv][:raw]
-        CSV.parse(csv_raw, config[:csv][:options] || {})
+        CSV.parse(csv_raw, **(config[:csv][:options] || {}))
       end
     end
 
@@ -165,12 +168,12 @@ module TotalRecall
     end
 
     def session
-      @session ||= session_class.new(transactions_config_defaults, :config => config)
+      @session ||= session_class.new(transactions_config_defaults, config: config)
     end
 
     def transaction_attributes
       @transaction_attributes ||= begin
-        transactions_config.dup.delete_if{|k,_| k[/__/]}.keys |
+        transactions_config.dup.delete_if { |k, _| k[/__/] }.keys |
           transactions_config_defaults.keys
       end
     end
@@ -182,7 +185,7 @@ module TotalRecall
 
           def initialize(values = {}, options = {})
             @config = options[:config]
-            values.each do |k,v|
+            values.each do |k, v|
               self[k] = value_for(k, v)
             end
           end
@@ -216,23 +219,23 @@ module TotalRecall
   end
 
   class Cli < Thor
-    require 'total_recall/version'
+    require "total_recall/version"
 
     include Thor::Actions
-    source_root File.expand_path('../total_recall/templates', __FILE__)
+    source_root File.expand_path("../total_recall/templates", __FILE__)
 
     desc "ledger", "Convert CONFIG to a ledger"
-    method_option :config,  :aliases => "-c", :desc => "Config file", :required => true
-    method_option :require, :aliases => "-r", :desc => "File to load"
-    method_option :csv,     :aliases => "-f", :desc => "csv file"
-    method_option :transactions_only, :type => :boolean
+    method_option :config, aliases: "-c", desc: "Config file", required: true
+    method_option :require, aliases: "-r", desc: "File to load"
+    method_option :csv, aliases: "-f", desc: "csv file"
+    method_option :transactions_only, type: :boolean
     def ledger
       load(options[:require]) if options[:require]
 
       config_path = File.expand_path(options[:config])
       puts TotalRecall::Config.new(file: config_path,
-                                   csv_file: options[:csv],
-                                   :transactions_only => options[:transactions_only]).ledger
+        csv_file: options[:csv],
+        transactions_only: options[:transactions_only]).ledger
     end
 
     desc "sample", "Generate an annotated config"
@@ -256,6 +259,6 @@ module TotalRecall
     def version
       puts TotalRecall::VERSION
     end
-    map %w(-v --version) => :version
+    map %w[-v --version] => :version
   end
 end
