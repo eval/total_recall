@@ -7,7 +7,11 @@ describe TotalRecall::Config do
 
   def stubbed_file(path, content)
     # SOURCE http://edgeapi.rubyonrails.org/classes/String.html#method-i-strip_heredoc
-    indent = content.scan(/^[ \t]*(?=\S)/).min.size rescue 0
+    indent = begin
+      content.scan(/^[ \t]*(?=\S)/).min.size
+    rescue
+      0
+    end
     content = content.gsub(/^[ \t]{#{indent}}/, "")
 
     FakeFS do
@@ -44,7 +48,7 @@ describe TotalRecall::Config do
     end
 
     it "yields csv from file :file" do
-      csv_file = stubbed_file("some.csv", "Some csv")
+      stubbed_file("some.csv", "Some csv")
       instance = instance_with_config(<<-CONFIG)
       :csv:
         :file: some.csv
@@ -54,7 +58,7 @@ describe TotalRecall::Config do
     end
 
     it "yields csv from :file when both :raw and :file are configured" do
-      csv_file = stubbed_file("some.csv", "Some csv")
+      stubbed_file("some.csv", "Some csv")
       instance = instance_with_config(<<-CONFIG)
       :csv:
         :file: some.csv
@@ -89,7 +93,7 @@ describe TotalRecall::Config do
     end
 
     it "yields template from file :file" do
-      template_file = stubbed_file("template.mustache", "File template")
+      stubbed_file("template.mustache", "File template")
       instance = instance_with_config(<<-CONFIG)
       :template:
         :file: template.mustache
@@ -99,7 +103,7 @@ describe TotalRecall::Config do
     end
 
     it "yields template from :file when both :raw and :file are configured" do
-      template_file = stubbed_file("template.mustache", "File template")
+      stubbed_file("template.mustache", "File template")
       instance = instance_with_config(<<-CONFIG)
       :template:
         :file: template.mustache
@@ -111,7 +115,7 @@ describe TotalRecall::Config do
 
     context "transactions only" do
       it "takes only the transactions-section of the template into account" do
-        instance = instance_with_config(<<-CONFIG, :transactions_only => true)
+        instance = instance_with_config(<<-CONFIG, transactions_only: true)
         :csv:
           :raw: |-
             row1

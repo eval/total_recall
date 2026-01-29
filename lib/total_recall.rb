@@ -53,8 +53,8 @@ module TotalRecall
 
     def render_row(options = {})
       options = {columns: []}.merge(options)
-      _row = options[:columns].map { |i| row[i] }
-      $stderr.puts Terminal::Table.new(rows: [_row])
+      table_row = options[:columns].map { |i| row[i] }
+      warn Terminal::Table.new(rows: [table_row])
     end
 
     def extract_transaction(row)
@@ -105,7 +105,7 @@ module TotalRecall
   end
 
   class Config
-    YAML.add_builtin_type("proc") { |_, val| eval("proc { #{val} }") }
+    YAML.add_builtin_type("proc") { |_, val| eval("proc { #{val} }", binding, __FILE__, __LINE__) } # rubocop:disable Security/Eval
 
     def initialize(options = {})
       options = {file: "total_recall.yml", csv_file: nil}.merge(options)
@@ -119,10 +119,8 @@ module TotalRecall
     end
 
     def csv_file
-      @csv_file ||= begin
-        config[:csv][:file] &&
-          File.expand_path(config[:csv][:file], File.dirname(@config_file))
-      end
+      @csv_file ||= config[:csv][:file] &&
+        File.expand_path(config[:csv][:file], File.dirname(@config_file))
     end
 
     def csv
@@ -138,28 +136,22 @@ module TotalRecall
     end
 
     def template
-      @template ||= begin
-        template_file ? File.read(template_file) : config[:template][:raw]
-      end
+      @template ||= template_file ? File.read(template_file) : config[:template][:raw]
     end
 
     def transactions_only_template
-      @transactions_only_template ||= begin
-        Mustache::Template.new("").tap do |t|
-          _transactions_tokens = proc { transactions_tokens }
-          t.define_singleton_method(:tokens) do |*|
-            _transactions_tokens.call
-          end
+      @transactions_only_template ||= Mustache::Template.new("").tap do |t|
+        transactions_tokens_proc = proc { transactions_tokens }
+        t.define_singleton_method(:tokens) do |*|
+          transactions_tokens_proc.call
         end
       end
     end
 
     def transactions_tokens
-      @transactions_tokens ||= begin
-        Mustache::Template.new(template).tokens.detect do |type, tag, *rest|
-          type == :mustache && tag == :section &&
-            [:mustache, :fetch, ["transactions"]]
-        end
+      @transactions_tokens ||= Mustache::Template.new(template).tokens.detect do |type, tag, *rest|
+        type == :mustache && tag == :section &&
+          [:mustache, :fetch, ["transactions"]]
       end
     end
 
@@ -172,32 +164,26 @@ module TotalRecall
     end
 
     def transaction_attributes
-      @transaction_attributes ||= begin
-        transactions_config.dup.delete_if { |k, _| k[/__/] }.keys |
-          transactions_config_defaults.keys
-      end
+      @transaction_attributes ||= transactions_config.dup.delete_if { |k, _| k[/__/] }.keys |
+        transactions_config_defaults.keys
     end
 
     def session_class
-      @session_class ||= begin
-        Class.new(Struct.new(*transaction_attributes)) do
-          include SessionHelper
+      @session_class ||= Class.new(Struct.new(*transaction_attributes)) do
+        include SessionHelper
 
-          def initialize(values = {}, options = {})
-            @config = options[:config]
-            values.each do |k, v|
-              self[k] = value_for(k, v)
-            end
+        def initialize(values = {}, options = {})
+          @config = options[:config]
+          values.each do |k, v|
+            self[k] = value_for(k, v)
           end
         end
       end
     end
 
     def transactions
-      @transactions ||= begin
-        csv.each_with_object([]) do |row, transactions|
-          transactions << Hash[session.extract_transaction(row).each_pair.to_a]
-        end
+      @transactions ||= csv.each_with_object([]) do |row, transactions|
+        transactions << session.extract_transaction(row).each_pair.to_a.to_h
       end
     end
 
@@ -222,6 +208,7 @@ module TotalRecall
     require "total_recall/version"
 
     include Thor::Actions
+
     source_root File.expand_path("../total_recall/templates", __FILE__)
 
     desc "ledger", "Convert CONFIG to a ledger"

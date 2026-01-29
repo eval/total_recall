@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'total_recall'
+require "total_recall"
 
 TotalRecall::Cli.start

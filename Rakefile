@@ -5,7 +5,9 @@ require "rspec/core/rake_task"
 
 RSpec::Core::RakeTask.new(:spec)
 
-task default: :spec
+require "standard/rake"
+
+task default: %i[spec standard]
 
 if ENV["CI"]
   # version.rb is written at CI which prevents guard_clean from passing.
