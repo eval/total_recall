@@ -11,3 +11,7 @@ gem "rspec", "~> 3.0"
 gem "fakefs"
 
 gem "standard", "~> 1.3"
+
+# prevent warning "X was loaded from the standard library"
+gem "rdoc"
+gem "irb"
