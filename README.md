@@ -15,10 +15,10 @@ Instead, one creates a yaml-config consisting of:
 After installation you run `total_recall init bank` to generate the following file:
 ```yaml
 # file: bank.yml
-:total_recall:
-  :version: 0.6.0
-:template:
-  :raw: |-
+total_recall:
+  version: 0.7.0
+template:
+  raw: |-
     ; -*- ledger -*-¬
 
     {{# transactions}}
@@ -28,24 +28,24 @@ After installation you run `total_recall init bank` to generate the following fi
 
     {{/ transactions}}
 
-:csv:
-  #:file: total_recall.csv
-  :raw: |-
+csv:
+  #file: total_recall.csv
+  raw: |-
     "2013-11-01","Foo","2013-11-02","1.638,00"
     "2013-11-02","Bar","2013-11-03","-492,93"
-  :options:
-    #:col_sep: ";"
-    #:headers: false
+  options:
+    #col_sep: ";"
+    #headers: false
 
-:context:
-  :transactions:
-    :__defaults__:
-      :from: !!proc |
+context:
+  transactions:
+    __defaults__:
+      from: !!proc |
         ask_account("What account provides these transactions?", default: 'Assets:Checking')
-    :date: !!proc row[0]
-    :description: !!proc row[1]
-    :amount: !!proc row[3]
-    :to: !!proc |
+    date: !!proc row[0]
+    description: !!proc row[1]
+    amount: !!proc row[3]
+    to: !!proc |
       render_row(columns: [0, 1, 3])
       ask_account("To what account did the money go?")
 ```
@@ -54,15 +54,15 @@ The `template`-section is pretty straightforward: you can add any variable you n
 The `csv`-section defines where csv comes from and what parse-options should be used. It's best to start with a csv-snippet in `raw` (and leave `file` commented) in order to test-run the config.
 
 In the `context`-section the actual mapping is done: in this section your should define a key for every variable in the template.  
-A key's value is derived from the csv via Ruby. This can be done via a simple mapping: `:date: !!proc row[0]`, via some specific operation: `:data: !!proc Date.parse(row[0]).iso8601` or via one of the [interactive helpers](https://gitlab.com/eval/total_recall/blob/v0.6.0/lib/total_recall.rb#L27-50) as you can see for the `to`-field above.  
+A key's value is derived from the csv via Ruby. This can be done via a simple mapping: `date: !!proc row[0]`, via some specific operation: `date: !!proc Date.parse(row[0]).iso8601` or via one of the [interactive helpers](https://github.com/eval/total_recall/blob/main/lib/total_recall.rb#L27-50) as you can see for the `to`-field above.
 Fields can also have default-values: the `from`-field for example is the same for all rows.
 
 As it's all Ruby, you can make the mapping as smart as you like:
-```
-:context:
-  :transactions:
-    :description: !!proc row[3]
-    :to: !!proc |
+```yaml
+context:
+  transactions:
+    description: !!proc row[3]
+    to: !!proc |
       guess = begin
         case self.description # the description-field is defined above
         when /CREDITCARD/ then "Liabilities:MasterCard"

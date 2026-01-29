@@ -1,8 +1,8 @@
 ---
-:total_recall:
-  :version: <%= @version %>
-:template:
-  :raw: |-
+total_recall:
+  version: <%= @version %>
+template:
+  raw: |-
     ; -*- ledger -*-¬
 
     {{# transactions}}
@@ -12,24 +12,24 @@
 
     {{/ transactions}}
 
-:csv:
-  #:file: <%= @name %>.csv # also overwritable via ledger-subcommand. See `total_recall help ledger`.
-  :raw: |-
+csv:
+  #file: <%= @name %>.csv # also overwritable via ledger-subcommand. See `total_recall help ledger`.
+  raw: |-
     "2013-11-01","Foo","2013-11-02","1.638,00"
     "2013-11-02","Bar","2013-11-03","-492,93"
-  :options:
-    #:col_sep: ";"
-    #:headers: false
-    #:header_converters: :symbol # row[:date] rather than row[0]. Requires headers.
+  options:
+    #col_sep: ";"
+    #headers: false
+    #header_converters: symbol # row[:date] rather than row[0]. Requires headers.
 
-:context:
-  :transactions:
-    :__defaults__:
-      :from: !!proc |
+context:
+  transactions:
+    __defaults__:
+      from: !!proc |
         ask_account("What account provides these transactions?", default: 'Assets:Checking')
-    :date: !!proc row[0]
-    :description: !!proc row[1]
-    :amount: !!proc row[3]
-    :to: !!proc |
+    date: !!proc row[0]
+    description: !!proc row[1]
+    amount: !!proc row[3]
+    to: !!proc |
       render_row(columns: [0, 1, 3])
       ask_account("To what account did the money go?")

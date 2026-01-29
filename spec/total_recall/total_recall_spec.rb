@@ -28,9 +28,9 @@ describe TotalRecall::Config do
   describe "#config" do
     it "yields the config as hash" do
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :raw: Some csv
-      :a: 1
+      csv:
+        raw: Some csv
+      a: 1
       CONFIG
 
       expect(instance.config).to eql({csv: {raw: "Some csv"}, a: 1})
@@ -38,31 +38,31 @@ describe TotalRecall::Config do
   end
 
   describe "#csv" do
-    it "yields csv assigned to :raw" do
+    it "yields csv assigned to raw" do
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :raw: Some csv
+      csv:
+        raw: Some csv
       CONFIG
 
       expect(instance.csv).to eql(CSV.parse("Some csv"))
     end
 
-    it "yields csv from file :file" do
+    it "yields csv from file" do
       stubbed_file("some.csv", "Some csv")
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :file: some.csv
+      csv:
+        file: some.csv
       CONFIG
 
       expect(instance.csv).to eql(CSV.parse("Some csv"))
     end
 
-    it "yields csv from :file when both :raw and :file are configured" do
+    it "yields csv from file when both raw and file are configured" do
       stubbed_file("some.csv", "Some csv")
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :file: some.csv
-        :raw: Some raw csv
+      csv:
+        file: some.csv
+        raw: Some raw csv
       CONFIG
 
       expect(instance.csv).to eql(CSV.parse("Some csv"))
@@ -70,9 +70,9 @@ describe TotalRecall::Config do
 
     specify "csv-options are passed on to CSV#read" do
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :options:
-          :option1: true
+      csv:
+        options:
+          option1: true
       CONFIG
 
       expect(CSV).to receive(:parse).with(anything, {option1: true})
@@ -81,10 +81,10 @@ describe TotalRecall::Config do
   end
 
   describe "#template" do
-    it "yields template assigned to :raw" do
+    it "yields template assigned to raw" do
       instance = instance_with_config(<<-CONFIG)
-      :template:
-        :raw: |-
+      template:
+        raw: |-
           Raw template
           here
       CONFIG
@@ -92,22 +92,22 @@ describe TotalRecall::Config do
       expect(instance.template).to eql("Raw template\nhere")
     end
 
-    it "yields template from file :file" do
+    it "yields template from file" do
       stubbed_file("template.mustache", "File template")
       instance = instance_with_config(<<-CONFIG)
-      :template:
-        :file: template.mustache
+      template:
+        file: template.mustache
       CONFIG
 
       expect(instance.template).to eql("File template")
     end
 
-    it "yields template from :file when both :raw and :file are configured" do
+    it "yields template from file when both raw and file are configured" do
       stubbed_file("template.mustache", "File template")
       instance = instance_with_config(<<-CONFIG)
-      :template:
-        :file: template.mustache
-        :raw: Raw template
+      template:
+        file: template.mustache
+        raw: Raw template
       CONFIG
 
       expect(instance.template).to eql("File template")
@@ -116,15 +116,15 @@ describe TotalRecall::Config do
     context "transactions only" do
       it "takes only the transactions-section of the template into account" do
         instance = instance_with_config(<<-CONFIG, transactions_only: true)
-        :csv:
-          :raw: |-
+        csv:
+          raw: |-
             row1
-        :context:
-          :a: 1
-          :transactions:
-            :b: !!proc row[0]
-        :template:
-          :raw: |-
+        context:
+          a: 1
+          transactions:
+            b: !!proc row[0]
+        template:
+          raw: |-
             {{a}}
             {{# transactions}}
             {{b}}
@@ -139,8 +139,8 @@ describe TotalRecall::Config do
   describe "YAML types" do
     it "allows proc-types" do
       instance = instance_with_config(<<-CONFIG)
-      :a: !!proc 1 + 1
-      :b: !!proc |
+      a: !!proc 1 + 1
+      b: !!proc |
         1 + 1
       CONFIG
 
@@ -152,15 +152,15 @@ describe TotalRecall::Config do
   describe "#context" do
     it "has a transaction per line of csv" do
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :raw: |-
+      csv:
+        raw: |-
           1
           1
-      :context:
-        :transactions:
-          :from: From
-          :to: !!proc 1 + 1
-          :amount: !!proc row[0]
+      context:
+        transactions:
+          from: From
+          to: !!proc 1 + 1
+          amount: !!proc row[0]
       CONFIG
 
       transactions = instance.context[:transactions]
@@ -172,15 +172,15 @@ describe TotalRecall::Config do
 
     it "adds defaults to every transaction" do
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :raw: |-
+      csv:
+        raw: |-
           line 1
           line 2
-      :context:
-        :transactions:
-          :__defaults__:
-            :default: !!proc 1
-          :from: From
+      context:
+        transactions:
+          __defaults__:
+            default: !!proc 1
+          from: From
       CONFIG
 
       transaction = instance.context[:transactions].first
@@ -190,12 +190,12 @@ describe TotalRecall::Config do
 
     it "may contain any other settings" do
       instance = instance_with_config(<<-CONFIG)
-      :csv:
-        :raw: some csv
-      :context:
-        :transactions:
-          :from: From
-        :a: 1
+      csv:
+        raw: some csv
+      context:
+        transactions:
+          from: From
+        a: 1
       CONFIG
 
       expect(instance.context).to match(transactions: [{from: "From"}], a: 1)
@@ -206,12 +206,12 @@ describe TotalRecall::Config do
     describe "#transaction" do
       it "gives access to the existing attributes" do
         instance = instance_with_config(<<-CONFIG)
-        :csv:
-          :raw: some csv
-        :context:
-          :transactions:
-            :a: attribute a
-            :b: !!proc |
+        csv:
+          raw: some csv
+        context:
+          transactions:
+            a: attribute a
+            b: !!proc |
               %|not %s| % transaction.a
         CONFIG
 
@@ -222,13 +222,13 @@ describe TotalRecall::Config do
     describe "#config" do
       it "gives access to the full config" do
         instance = instance_with_config(<<-CONFIG)
-        :csv:
-          :raw: some csv
-        :context:
-          :transactions:
-            :a: !!proc |
+        csv:
+          raw: some csv
+        context:
+          transactions:
+            a: !!proc |
               config[:a]
-        :a: 1
+        a: 1
         CONFIG
 
         expect(instance.transactions.first).to match({a: 1})
@@ -238,16 +238,16 @@ describe TotalRecall::Config do
     describe "#default" do
       it "gives access to the default" do
         instance = instance_with_config(<<-CONFIG)
-        :csv:
-          :raw: some csv
-        :context:
-          :transactions:
-            :__defaults__:
-              :a: !!proc 2
-              :b?: true
-            :a: !!proc |
+        csv:
+          raw: some csv
+        context:
+          transactions:
+            __defaults__:
+              a: !!proc 2
+              b?: true
+            a: !!proc |
               default.succ
-            :b?: true
+            b?: true
         CONFIG
 
         expect(instance.transactions.first).to match({a: 3, b?: true})

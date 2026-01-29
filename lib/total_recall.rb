@@ -115,7 +115,7 @@ module TotalRecall
     end
 
     def config
-      @config ||= YAML.unsafe_load_file(@config_file)
+      @config ||= YAML.unsafe_load_file(@config_file, symbolize_names: true)
     end
 
     def csv_file
